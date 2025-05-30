@@ -10,7 +10,7 @@ def check_openssl():
         return False
     return True
 
-def create_root_ca():
+def create_root_ca(prefixName="Local"):  # Default to "Local" if no prefixName is provided
     print("Creating root CA certificate...")
     
     # Prompt for Organization details
@@ -18,25 +18,33 @@ def create_root_ca():
     cn_name = input("Enter Common Name (e.g., Root CA Name): ")
     
     # Generate root key with password protection
+    # Generate root key with password protection
+    key_file = f"{prefixName}RootCA.key"
     subprocess.run([
         "openssl", "genrsa", "-des3", "-passout", "pass:1234",
-        "-out", "LocalRootCA.key", "4096"
+        "-out", key_file, "4096"
     ])
     
     # Generate root certificate with user-provided values
+    crt_file = f"{prefixName}RootCA.crt"
     subprocess.run([
         "openssl", "req", "-x509", "-new", "-nodes",
-        "-key", "LocalRootCA.key", "-sha256", "-days", "3650",
+        "-key", key_file, "-sha256", "-days", "3650",
         "-passin", "pass:1234",
-        "-out", "LocalRootCA.crt",
+        "-out", crt_file,
         "-subj", f"/C=US/ST=State/L=City/O={org_name}/OU=Development/CN={cn_name}"
     ])
 
     # Convert crt to pem
+    pem_file = f"{prefixName}RootCA.pem"
     subprocess.run([
-        "openssl", "x509", "-in", "LocalRootCA.crt",
-        "-out", "LocalRootCA.pem", "-outform", "PEM"
+        "openssl", "x509", "-in", crt_file,
+        "-out", pem_file, "-outform", "PEM"
     ])
+    
+    print("\nRoot CA created successfully!")
+    print(f"Location: ./{key_file}, ./{crt_file} and ./{pem_file}")
+    print("Root CA Key Password: 1234")
     
     print("\nRoot CA created successfully!")
     print("Location: ./LocalRootCA.key, ./LocalRootCA.crt and ./LocalRootCA.pem")
