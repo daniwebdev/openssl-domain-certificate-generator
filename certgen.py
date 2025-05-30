@@ -13,19 +13,23 @@ def check_openssl():
 def create_root_ca():
     print("Creating root CA certificate...")
     
+    # Prompt for Organization details
+    org_name = input("Enter Organization Name (e.g., Your Company Name): ")
+    cn_name = input("Enter Common Name (e.g., Root CA Name): ")
+    
     # Generate root key with password protection
     subprocess.run([
         "openssl", "genrsa", "-des3", "-passout", "pass:1234",
         "-out", "LocalRootCA.key", "4096"
     ])
     
-    # Generate root certificate
+    # Generate root certificate with user-provided values
     subprocess.run([
         "openssl", "req", "-x509", "-new", "-nodes",
         "-key", "LocalRootCA.key", "-sha256", "-days", "3650",
         "-passin", "pass:1234",
         "-out", "LocalRootCA.crt",
-        "-subj", "/C=US/ST=State/L=City/O=Local CA/OU=Development/CN=Local Root CA"
+        "-subj", f"/C=US/ST=State/L=City/O={org_name}/OU=Development/CN={cn_name}"
     ])
 
     # Convert crt to pem
